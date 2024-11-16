@@ -29,28 +29,57 @@ app.get("/api/music", async (req, res) => {
         const track = data.data.info;
 
         // ข้อมูลเพลง
-        const { title, author, length, artworkUrl } = track;
-        const duration = new Date(length).toISOString().substr(11, 8);
-        const artwork = artworkUrl || `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`; // ใช้ภาพจาก YouTube ถ้าไม่มี artworkUrl
+        const { title, author, sourceName } = track;
+        const artwork = track.artworkUrl || `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`; // ใช้ภาพจาก Lavalink หรือ YouTube
 
         // สร้าง Canvas
-        const canvas = createCanvas(1200, 400);
+        const canvas = createCanvas(600, 180); // ขนาดของ Canvas
         const ctx = canvas.getContext("2d");
 
-        // วาดพื้นหลัง
-        ctx.fillStyle = "#121212";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // สร้างพื้นหลังโค้งมน
+        ctx.fillStyle = "#2c2f33"; // สีพื้นหลัง
+        const radius = 15;
+        ctx.beginPath();
+        ctx.moveTo(radius, 0);
+        ctx.lineTo(canvas.width - radius, 0);
+        ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+        ctx.lineTo(canvas.width, canvas.height - radius);
+        ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+        ctx.lineTo(radius, canvas.height);
+        ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+        ctx.lineTo(0, radius);
+        ctx.quadraticCurveTo(0, 0, radius, 0);
+        ctx.closePath();
+        ctx.fill();
 
-        // โหลดและวาดภาพปก
+        // วาดรูปภาพปก
         const image = await loadImage(artwork);
-        ctx.drawImage(image, 20, 20, 160, 160);
+        ctx.drawImage(image, 20, 20, 140, 140); // กำหนดตำแหน่งและขนาดรูปภาพ
 
-        // วาดข้อมูลเพลง
+        // วาดข้อความ
         ctx.font = "bold 20px Arial";
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(`Title: ${title}`, 200, 50);
-        ctx.fillText(`Author: ${author}`, 200, 90);
-        ctx.fillText(`Duration: ${duration}`, 200, 130);
+        ctx.fillText(title, 180, 50); // ชื่อเพลง
+        ctx.font = "normal 16px Arial";
+        ctx.fillStyle = "#b9bbbe";
+        ctx.fillText(author, 180, 80); // ชื่อศิลปิน
+        ctx.fillStyle = "#f9a8d4";
+        ctx.fillText(sourceName, 180, 110); // Source Name
+
+        // วาดปุ่มเล่น/หยุด
+        ctx.fillStyle = "#5865f2";
+        ctx.beginPath();
+        ctx.arc(522, 90, 30, 0, Math.PI * 2, true); // ปุ่มวงกลม
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 24px Arial";
+        ctx.fillText("⏸", 508, 98); // ไอคอนปุ่ม (ใช้ Unicode)
+
+        // วาดแถบเลื่อนด้านล่าง
+        ctx.fillStyle = "#424549";
+        ctx.fillRect(180, 140, 300, 5); // พื้นหลังแถบ
+        ctx.fillStyle = "#f9a8d4";
+        ctx.fillRect(180, 140, 150, 5); // แถบความคืบหน้า
 
         // ส่งภาพในรูปแบบ PNG
         res.setHeader("Content-Type", "image/png");
